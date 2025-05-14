@@ -12,7 +12,7 @@ class GlobalPoolController extends Controller
      */
     public function index()
     {
-        $globalPool = GlobalPool::first();
+        $globalPool = GlobalPool::all();
 
         return response()->json($globalPool);
     }
