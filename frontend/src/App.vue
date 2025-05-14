@@ -4,5 +4,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
     <RouterLink to="/">Home</RouterLink>
-    <RouterView />
+    <div class="bg-gradient-to-br from-gray-900 to-slate-800">
+        <RouterView />
+    </div>
 </template>
