@@ -14,7 +14,7 @@ class GlobalPoolController extends Controller
     {
         $globalPool = GlobalPool::first();
 
-        echo response()->json($globalPool);
+        return response()->json($globalPool);
     }
 
     /**
