@@ -24,7 +24,10 @@ export default {
         };
     },
     async mounted() {
-        this.globalBalance.loadGlobalPoolData();
-    }
+        this.globalBalance.startAutoRefresh();
+    },
+    unmounted() {
+        this.globalBalance.stopAutoRefresh();
+    },
 }
 </script>
