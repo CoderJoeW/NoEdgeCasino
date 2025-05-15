@@ -90,7 +90,7 @@ export default {
                 const auth = useAuthStore()
                 await auth.login(this.email, this.password)
                 if (auth.isAuthenticated) {
-                    this.$router.push({ name: 'Home' });
+                    this.$router.push({ name: 'home' });
                 } else {
                     this.errorMessage = 'Invalid email or password. Please try again.'
                 }
