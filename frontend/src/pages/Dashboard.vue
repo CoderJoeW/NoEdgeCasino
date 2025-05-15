@@ -32,6 +32,9 @@ import Header from '@/components/Header.vue';
 import Sidebar from '@/components/Sidebar.vue';
 import MainContainer from '@/components/MainContainer.vue';
 
+import { useAuthStore } from '@/store/authStore';
+import api from '@/scripts/axios';
+
 export default {
     name: 'Dashboard',
     components: {
@@ -41,11 +44,13 @@ export default {
     },
     data() {
         return {
-
+            auth: useAuthStore(),
         };
     },
     mounted() {
-
+        if (!this.auth.isAuthenticated) {
+            window.location.href = '/login';
+        }
     },
     methods: {
 
