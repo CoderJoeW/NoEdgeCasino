@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between h-16 px-4">
             <div class="flex-1 px-4 md:px-0 flex justify-center items-center">
                 <div class="flex items-center gap-2 bg-gray-800/40 px-4 py-2 rounded-lg border border-gray-700">
-                    <span class="font-medium" v-if="auth !== null">${{ auth.user.no_edge_cash }}</span>
+                    <span class="font-medium" v-if="auth !== null">${{ auth.user?.no_edge_cash }}</span>
                 </div>
             </div>
       
