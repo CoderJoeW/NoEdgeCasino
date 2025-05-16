@@ -549,6 +549,20 @@
             </div>
         </div>
 
+        <!-- Turbo Mode Toggle Button -->
+        <button 
+            @click="toggleTurboMode = !toggleTurboMode"
+            :class="[
+                'fixed bottom-18 right-4 p-3 rounded-full shadow-lg transition-colors',
+                toggleTurboMode ? 'bg-green-600 ring-4 ring-green-400 shadow-green-400/70 animate-turbo-glow' : 'bg-slate-700 hover:bg-slate-600 text-white'
+            ]"
+            style="z-index: 60;"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" :fill="toggleTurboMode ? '#22ff00' : 'none'" :stroke="toggleTurboMode ? '#22ff00' : 'currentColor'" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" :fill="toggleTurboMode ? '#22ff00' : 'none'" :stroke="toggleTurboMode ? '#22ff00' : 'currentColor'"/>
+            </svg>
+        </button>
+
         <!-- Profit Tracker Toggle Button -->
         <button 
             @click="showProfitTracker = !showProfitTracker"
@@ -613,8 +627,8 @@ export default {
             cosmicCreatureFloat: 0,
             cosmicCreatureFloatInterval: null,
 
-            // Profit tracker
             showProfitTracker: false,
+            toggleTurboMode: false,
             profitTrackerPosition: { x: 20, y: 20 },
             isDragging: false,
             dragOffset: { x: 0, y: 0 },
@@ -841,9 +855,6 @@ export default {
         async playGame() {
             if (!this.canPlay) return;
 
-            // Start the rocket animation
-            this.startRocketAnimation();
-
             try {
                 await api.get('/sanctum/csrf-cookie');
                 const response = await api.post('/api/limbo/play', {
@@ -856,6 +867,38 @@ export default {
                     this.stopRocketAnimation(false, 1);
                     return;
                 }
+
+                // TURBO MODE: Skip animation and display result instantly
+                if (this.toggleTurboMode) {
+                    // Instantly set state to the end result
+                    this.isAnimating = false;
+                    this.isCrashing = !response.data.win;
+                    this.currentMultiplier = response.data.multiplierAchieved;
+                    this.displayMultiplier = response.data.multiplierAchieved;
+                    this.rocketPosition = this.getMultiplierPosition(response.data.multiplierAchieved);
+                    this.lastResult = {
+                        played: true,
+                        win: response.data.win,
+                        multiplierAchieved: response.data.multiplierAchieved
+                    };
+                    const gameResult = {
+                        targetMultiplier: this.targetMultiplier,
+                        multiplierAchieved: response.data.multiplierAchieved,
+                        betAmount: this.betAmount,
+                        win: response.data.win
+                    };
+                    this.gameHistory.unshift(gameResult);
+                    if (this.gameHistory.length > 10) {
+                        this.gameHistory.pop();
+                    }
+                    this.updateSessionStats(gameResult);
+                    this.auth.fetchUser();
+                    this.globalBalance.loadGlobalPoolData();
+                    return;
+                }
+
+                // Normal mode: play animation
+                this.startRocketAnimation();
 
                 // Wait for animation to reach the result multiplier
                 const checkInterval = setInterval(() => {
@@ -1216,5 +1259,16 @@ input[type="range"]::-webkit-slider-thumb {
 /* Shadow glow effect */
 .shadow-glow {
     box-shadow: 0 0 8px var(--glow-color, rgba(255, 255, 255, 0.5));
+}
+.animate-turbo-glow {
+  animation: turbo-glow 1s infinite alternate;
+}
+@keyframes turbo-glow {
+  0% {
+    box-shadow: 0 0 0px #22ff00, 0 0 20px #22ff00, 0 0 40px #22ff00;
+  }
+  100% {
+    box-shadow: 0 0 16px #22ff00, 0 0 32px #22ff00, 0 0 64px #22ff00;
+  }
 }
 </style>
