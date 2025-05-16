@@ -36,27 +36,27 @@
                         <div class="grid grid-cols-4 gap-x-4">
                             <div class="flex flex-col items-center justify-center">
                                 <span class="text-xs text-white/70">Games</span>
-                                <span class="text-base font-semibold text-white">{{ stats.totalGames }}</span>
+                                <span class="text-base font-semibold text-white">{{ sessionStats.totalGames }}</span>
                             </div>
                             <div class="flex flex-col items-center justify-center">
                                 <span class="text-xs text-white/70">Wins</span>
-                                <span class="text-base font-semibold text-white">{{ stats.wins }}</span>
+                                <span class="text-base font-semibold text-white">{{ sessionStats.wins }}</span>
                             </div>
                             <div class="flex flex-col items-center justify-center">
                                 <span class="text-xs text-white/70">Win Rate</span>
-                                <span class="text-base font-semibold text-white">{{ stats.winRate }}%</span>
+                                <span class="text-base font-semibold text-white">{{ winRate }}%</span>
                             </div>
                             <div class="flex flex-col items-center justify-center">
                                 <span class="text-xs text-white/70">Profit</span>
                                 <span 
                                     class="text-base font-semibold"
                                     :class="{
-                                        'text-emerald-400': stats.profit > 0,
-                                        'text-red-400': stats.profit < 0,
-                                        'text-white': stats.profit === 0
+                                        'text-emerald-400': sessionStats.profit > 0,
+                                        'text-red-400': sessionStats.profit < 0,
+                                        'text-white': sessionStats.profit === 0
                                     }"
                                 >
-                                    {{ stats.profit > 0 ? '+' : '' }}${{ stats.profit.toFixed(2) }}
+                                    {{ sessionStats.profit > 0 ? '+' : '' }}${{ sessionStats.profit.toFixed(2) }}
                                 </span>
                             </div>
                         </div>
@@ -65,147 +65,260 @@
 
                 <!-- Main Game Area: Side by Side Layout -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <!-- Left: Rocket Animation -->
+                    <!-- Left: Enhanced Rocket Animation -->
                     <div class="lg:col-span-2">
-                        <div class="relative h-64 bg-slate-950 rounded-lg overflow-hidden border border-slate-800">
-                            <div class="absolute inset-0 rocket-animation-container">
-                                <!-- Stars Background -->
-                                <div class="stars-container absolute inset-0">
-                                    <div v-for="i in 50" :key="`star-${i}`" 
-                                        class="star absolute rounded-full bg-white"
-                                        :class="{ 'animate-twinkle': isAnimating, 'animate-streak': isAnimating && currentMultiplier > 5 }"
+                        <div class="relative h-[calc(100vh-300px)] min-h-[400px] max-h-[600px] rounded-lg overflow-hidden border border-slate-700 shadow-inner">
+                            <!-- Simplified Space Background -->
+                            <div class="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950/10 to-slate-950 overflow-hidden">
+                                <!-- Subtle Nebula -->
+                                <div class="absolute w-full h-full opacity-5">
+                                    <div class="absolute top-1/4 left-1/4 w-1/2 h-1/2 rounded-full bg-purple-500/20 blur-3xl"></div>
+                                    <div class="absolute top-1/3 right-1/4 w-1/3 h-1/3 rounded-full bg-blue-500/20 blur-3xl"></div>
+                                </div>
+                                
+                                <!-- Static Stars -->
+                                <div class="absolute inset-0">
+                                    <div v-for="i in 80" :key="`star-${i}`" 
+                                        class="absolute rounded-full bg-white"
                                         :style="{
                                             left: `${Math.random() * 100}%`,
                                             top: `${Math.random() * 100}%`,
                                             width: `${Math.random() * 2 + 1}px`,
                                             height: `${Math.random() * 2 + 1}px`,
-                                            animationDelay: `${Math.random() * 3}s`,
-                                            opacity: Math.random() * 0.7 + 0.3
+                                            opacity: Math.random() * 0.5 + 0.3
                                         }">
                                     </div>
-                                </div>
-
-                                <!-- Multiplier Planets -->
-                                <div class="planets-container absolute inset-0">
-                                    <div v-for="(planet, index) in planets" :key="`planet-${index}`"
-                                        class="planet absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center"
-                                        :class="{ 'planet-reached': isAnimating && currentMultiplier >= planet.value }"
+                                    
+                                    <!-- Larger Stars with Subtle Glow -->
+                                    <div v-for="i in 15" :key="`glow-star-${i}`" 
+                                        class="absolute rounded-full bg-white animate-pulse-subtle"
                                         :style="{
-                                            bottom: `${getMultiplierPosition(planet.value)}%`,
+                                            left: `${Math.random() * 100}%`,
+                                            top: `${Math.random() * 100}%`,
+                                            width: `${Math.random() * 2.5 + 1.5}px`,
+                                            height: `${Math.random() * 2.5 + 1.5}px`,
+                                            boxShadow: `0 0 ${Math.random() * 3 + 2}px rgba(255, 255, 255, 0.5)`,
+                                            animationDuration: `${Math.random() * 3 + 3}s`,
+                                            animationDelay: `${Math.random() * 2}s`
                                         }">
-                                        <div class="planet-ring relative rounded-full flex items-center justify-center"
-                                            :class="planet.ringClass">
-                                            <span class="text-xs font-bold text-white z-10">{{ planet.value }}x</span>
-                                        </div>
                                     </div>
                                 </div>
-
-                                <!-- Rocket -->
-                                <div v-if="isAnimating || lastResult.played" 
-                                    class="rocket absolute left-1/2 transform -translate-x-1/2"
+                            </div>
+                            
+                            <!-- Enhanced Multiplier Track -->
+                            <div class="absolute left-1/2 bottom-0 top-0 w-0.5 bg-white/20 transform -translate-x-1/2"></div>
+                            
+                            <!-- Improved Multiplier Markers -->
+                            <div class="absolute inset-0">
+                                <div v-for="(marker, index) in multiplierMarkers" :key="`marker-${index}`"
+                                    class="absolute left-0 right-0 h-0.5 transition-all duration-300"
                                     :class="{
-                                        'rocket-flying': isAnimating && !isCrashing,
-                                        'rocket-crashed': isCrashing,
-                                        'rocket-landed': !isAnimating && lastResult.win
+                                        'bg-white/20': true,
+                                        'bg-white/40': isAnimating && currentMultiplier >= marker.value
                                     }"
                                     :style="{
-                                        bottom: isAnimating ? `${getMultiplierPosition(currentMultiplier)}%` :
-                                            lastResult.win ? `${getMultiplierPosition(lastResult.multiplierAchieved)}%` : '10%',
-                                        transition: `bottom ${isAnimating ? '0.1s' : '0.5s'} ease-out`
+                                        bottom: `${getMultiplierPosition(marker.value)}%`,
                                     }">
-                                    <!-- Rocket Body -->
-                                    <div class="relative">
-                                        <!-- Rocket Trail -->
-                                        <div v-if="isAnimating || (lastResult.played && !lastResult.win && isCrashing)" 
-                                            class="rocket-trail absolute bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
-                                            <div v-for="i in 8" :key="`trail-${i}`"
-                                                class="trail-particle absolute rounded-full"
-                                                :class="[getTrailColorClass(currentMultiplier)]"
-                                                :style="{
-                                                    width: `${Math.random() * 8 + 4}px`,
-                                                    height: `${Math.random() * 8 + 4}px`,
-                                                    left: `${(Math.random() - 0.5) * 20}px`,
-                                                    bottom: `${i * 5}px`,
-                                                    opacity: 1 - (i * 0.1),
-                                                    animationDelay: `${i * 0.05}s`
-                                                }">
-                                            </div>
-                                        </div>
-
-                                        <!-- Rocket Ship -->
-                                        <div class="rocket-body relative h-10 w-7 bg-gradient-to-b from-rose-500 to-rose-600 rounded-t-full">
-                                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-cyan-300 rounded-full flex items-center justify-center">
-                                                <div class="w-2 h-2 bg-white rounded-full"></div>
-                                            </div>
-                                            <div class="absolute bottom-0 left-0 w-2 h-3 bg-rose-700 rounded-bl-md"></div>
-                                            <div class="absolute bottom-0 right-0 w-2 h-3 bg-rose-700 rounded-br-md"></div>
+                                    <!-- Enhanced Marker Dot -->
+                                    <div class="absolute -left-2 -top-2 w-4 h-4 rounded-full transition-all duration-300 flex items-center justify-center"
+                                        :class="[
+                                            { 'bg-slate-800 border-2': true },
+                                            { 'border-white/40': !(isAnimating && currentMultiplier >= marker.value) },
+                                            { 'border-white': isAnimating && currentMultiplier >= marker.value },
+                                            { 'shadow-glow': isAnimating && currentMultiplier >= marker.value }
+                                        ]"
+                                        :style="{
+                                            '--glow-color': 'rgba(255, 255, 255, 0.5)'
+                                        }">
+                                        <div class="w-2 h-2 rounded-full transition-all duration-300"
+                                            :class="[
+                                                marker.bgClass,
+                                                { 'opacity-50': !(isAnimating && currentMultiplier >= marker.value) },
+                                                { 'opacity-100': isAnimating && currentMultiplier >= marker.value }
+                                            ]">
                                         </div>
                                     </div>
-
-                                    <!-- Explosion Effect -->
-                                    <div v-if="isCrashing" class="explosion absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                        <div v-for="i in 20" :key="`explosion-${i}`"
-                                            class="explosion-particle absolute rounded-full"
-                                            :style="{
-                                                width: `${Math.random() * 6 + 2}px`,
-                                                height: `${Math.random() * 6 + 2}px`,
-                                                backgroundColor: getRandomExplosionColor(),
-                                                transform: `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px)`,
-                                                opacity: Math.random(),
-                                                animationDuration: `${Math.random() * 1 + 0.5}s`
-                                            }">
-                                        </div>
-                                    </div>
-
-                                    <!-- Win Celebration -->
-                                    <div v-if="!isAnimating && lastResult.win" class="celebration absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
-                                        <div v-for="i in 30" :key="`confetti-${i}`"
-                                            class="confetti-particle absolute"
-                                            :style="{
-                                                width: `${Math.random() * 8 + 4}px`,
-                                                height: `${Math.random() * 3 + 2}px`,
-                                                backgroundColor: getRandomConfettiColor(),
-                                                transform: `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px) rotate(${Math.random() * 360}deg)`,
-                                                opacity: Math.random() * 0.7 + 0.3,
-                                                animationDuration: `${Math.random() * 2 + 1}s`,
-                                                animationDelay: `${Math.random() * 0.5}s`
-                                            }">
-                                        </div>
+                                    
+                                    <!-- Enhanced Marker Label -->
+                                    <div class="absolute left-4 -top-3 px-1.5 py-0.5 rounded transition-all duration-300 text-sm"
+                                        :class="{
+                                            'bg-slate-800/50 text-white/60': !(isAnimating && currentMultiplier >= marker.value),
+                                            'bg-slate-800/80 text-white font-medium': isAnimating && currentMultiplier >= marker.value
+                                        }">
+                                        {{ marker.value }}×
                                     </div>
                                 </div>
-
-                                <!-- Landing Platform (for wins) -->
-                                <div v-if="!isAnimating && lastResult.win" 
-                                    class="landing-platform absolute left-1/2 transform -translate-x-1/2"
-                                    :style="{
-                                        bottom: `${getMultiplierPosition(lastResult.multiplierAchieved) - 2}%`,
-                                    }">
-                                    <div class="w-20 h-4 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg"></div>
-                                </div>
-
-                                <!-- Cosmic Creatures (rare appearances) -->
-                                <div v-if="showCosmicCreature" 
-                                    class="cosmic-creature absolute"
-                                    :style="{
-                                        left: `${cosmicCreaturePosition.x}%`,
-                                        top: `${cosmicCreaturePosition.y}%`,
-                                        transform: `scale(${cosmicCreaturePosition.scale})`
-                                    }">
-                                    <div class="w-12 h-8 bg-purple-500 rounded-full relative overflow-visible opacity-80">
-                                        <div class="absolute top-1/2 left-1/4 transform -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
-                                        <div class="absolute top-1/3 right-1/4 transform -translate-y-1/2 w-3 h-3 bg-cyan-300 rounded-full"></div>
-                                        <div class="absolute -bottom-1 left-0 w-full h-2 bg-purple-500 rounded-full flex space-x-1">
-                                            <div class="w-2 h-4 bg-purple-400 rounded-full"></div>
-                                            <div class="w-2 h-3 bg-purple-400 rounded-full"></div>
-                                            <div class="w-2 h-5 bg-purple-400 rounded-full"></div>
+                            </div>
+                            
+                            <!-- Fixed Rocket -->
+                            <div 
+                                class="absolute left-1/2 transform -translate-x-1/2 transition-all duration-100 ease-linear z-10"
+                                :class="{
+                                    'rocket-flying': isAnimating && !isCrashing,
+                                    'rocket-crashed': isCrashing,
+                                    'rocket-landed': !isAnimating && lastResult.win && lastResult.played
+                                }"
+                                :style="{
+                                    bottom: `${rocketPosition}%`,
+                                    opacity: isAnimating || lastResult.played ? 1 : 0
+                                }">
+                                
+                                <!-- Rocket Body with Fixed Design -->
+                                <div class="relative">
+                                    <!-- Improved Rocket Flame -->
+                                    <div v-if="isAnimating || (lastResult.played && !lastResult.win && isCrashing)" 
+                                        class="absolute -bottom-12 left-1/2 transform -translate-x-1/2 w-8 overflow-hidden">
+                                        <!-- Outer Glow -->
+                                        <div class="absolute -inset-2 bg-orange-500/30 rounded-full filter blur-md"></div>
+                                        
+                                        <!-- Main Flame -->
+                                        <div class="relative w-8 h-16">
+                                            <div class="absolute inset-0 bg-gradient-to-t from-transparent via-yellow-500 to-red-500 rounded-b-full animate-flame"></div>
+                                            
+                                            <!-- Inner Flame -->
+                                            <div class="absolute inset-2 bg-gradient-to-t from-transparent via-white to-yellow-300 rounded-b-full animate-inner-flame"></div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Fixed Rocket Ship -->
+                                    <svg width="40" height="60" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Rocket Body -->
+                                        <path d="M20 0C12 0 8 8 8 20V40H32V20C32 8 28 0 20 0Z" fill="#E11D48"/>
+                                        
+                                        <!-- Rocket Window -->
+                                        <circle cx="20" cy="20" r="6" fill="#7DD3FC"/>
+                                        <circle cx="20" cy="20" r="4" fill="#0EA5E9"/>
+                                        <circle cx="18" cy="18" r="1.5" fill="white"/>
+                                        
+                                        <!-- Rocket Fins -->
+                                        <path d="M8 40L0 50V60H8V40Z" fill="#BE123C"/>
+                                        <path d="M32 40L40 50V60H32V40Z" fill="#BE123C"/>
+                                        
+                                        <!-- Rocket Bottom -->
+                                        <rect x="8" y="40" width="24" height="10" fill="#BE123C"/>
+                                        <path d="M12 50H28C28 55 24 58 20 58C16 58 12 55 12 50Z" fill="#9F1239"/>
+                                        <circle cx="20" cy="54" r="2" fill="#7F1D1D"/>
+                                    </svg>
                                 </div>
-
-                                <!-- Multiplier Display -->
-                                <div v-if="isAnimating" class="absolute top-4 left-1/2 transform -translate-x-1/2 text-4xl font-bold text-white z-10 multiplier-display">
-                                    {{ currentMultiplier.toFixed(2) }}×
+                                
+                                <!-- Fixed Explosion Effect -->
+                                <div v-if="isCrashing" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40">
+                                    <!-- Central Flash -->
+                                    <div class="absolute inset-0 bg-white rounded-full animate-explosion-flash"></div>
+                                    
+                                    <!-- Shockwave Ring -->
+                                    <div class="absolute inset-0 border-2 border-white/80 rounded-full animate-shockwave"></div>
+                                    
+                                    <!-- Explosion Particles -->
+                                    <div v-for="i in 24" :key="`explosion-${i}`"
+                                        class="absolute w-2 h-2 rounded-full"
+                                        :style="{
+                                            backgroundColor: getRandomExplosionColor(),
+                                            left: '50%',
+                                            top: '50%',
+                                            transform: `translate(-50%, -50%)`,
+                                            opacity: 1,
+                                            '--angle': `${i * 15}deg`,
+                                            '--distance': `${Math.random() * 30 + 30}px`,
+                                            '--duration': `${Math.random() * 0.5 + 0.7}s`,
+                                            animation: 'explosion-particle var(--duration) ease-out forwards'
+                                        }">
+                                    </div>
                                 </div>
+                            </div>
+                            
+                            <!-- Fixed Landing Platform -->
+                            <div v-if="!isAnimating && lastResult.win && lastResult.played" 
+                                class="absolute left-1/2 transform -translate-x-1/2 w-40 h-6 z-5"
+                                :style="{
+                                    bottom: `${getMultiplierPosition(lastResult.multiplierAchieved) - 2}%`,
+                                }">
+                                <!-- Platform with Glow -->
+                                <div class="relative w-full h-full">
+                                    <!-- Glow Effect -->
+                                    <div class="absolute -inset-1 bg-yellow-500/30 rounded-lg filter blur-md"></div>
+                                    
+                                    <!-- Platform Body -->
+                                    <div class="relative w-full h-full bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg shadow-lg">
+                                        <!-- Platform Details -->
+                                        <div class="absolute top-1 left-4 right-4 h-1 bg-yellow-300/50 rounded-full"></div>
+                                        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-10 h-3 bg-amber-700 rounded-b-lg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Fixed UFO with Smoother Animation -->
+                            <div v-if="showCosmicCreature" 
+                                class="absolute transition-all duration-1000 ease-in-out z-20"
+                                :style="{
+                                    left: `${cosmicCreaturePosition.x}%`,
+                                    top: `${cosmicCreaturePosition.y}%`,
+                                    transform: `translateY(${cosmicCreatureFloat}px)`,
+                                }">
+                                <!-- UFO with Improved Design -->
+                                <div class="relative">
+                                    <!-- UFO Glow -->
+                                    <div class="absolute -inset-2 bg-cyan-400/20 rounded-full filter blur-md"></div>
+                                    
+                                    <!-- UFO Body -->
+                                    <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- UFO Body -->
+                                        <ellipse cx="40" cy="20" rx="30" ry="10" fill="#94A3B8" />
+                                        <ellipse cx="40" cy="20" rx="20" ry="6" fill="#CBD5E1" />
+                                        
+                                        <!-- UFO Dome -->
+                                        <ellipse cx="40" cy="15" rx="15" ry="10" fill="#7DD3FC" fill-opacity="0.7" />
+                                        
+                                        <!-- UFO Lights -->
+                                        <circle cx="25" cy="22" r="2" fill="#FBBF24" class="animate-ufo-light" style="animation-delay: 0s" />
+                                        <circle cx="35" cy="24" r="2" fill="#FBBF24" class="animate-ufo-light" style="animation-delay: 0.2s" />
+                                        <circle cx="45" cy="24" r="2" fill="#FBBF24" class="animate-ufo-light" style="animation-delay: 0.4s" />
+                                        <circle cx="55" cy="22" r="2" fill="#FBBF24" class="animate-ufo-light" style="animation-delay: 0.6s" />
+                                        
+                                        <!-- UFO Beam -->
+                                        <path v-if="cosmicCreaturePosition.showBeam" d="M40 25L50 40H30L40 25Z" fill="url(#beam-gradient)" />
+                                        
+                                        <!-- Gradients -->
+                                        <defs>
+                                            <linearGradient id="beam-gradient" x1="40" y1="25" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                                                <stop offset="0" stop-color="#7DD3FC" stop-opacity="0.8"/>
+                                                <stop offset="1" stop-color="#7DD3FC" stop-opacity="0"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <!-- Enhanced Multiplier Display -->
+                            <div v-if="isAnimating || (lastResult.played && !isAnimating)" 
+                                class="absolute top-4 left-1/2 transform -translate-x-1/2 text-5xl font-bold z-30 multiplier-display transition-all duration-300"
+                                :class="{
+                                    'text-white': isAnimating && !isCrashing,
+                                    'text-red-500': isCrashing,
+                                    'text-green-500': !isAnimating && lastResult.win && lastResult.played,
+                                    'text-red-500': !isAnimating && !lastResult.win && lastResult.played
+                                }">
+                                <div class="relative">
+                                    {{ displayMultiplier.toFixed(2) }}×
+                                    <div v-if="isAnimating && !isCrashing" class="absolute -inset-4 bg-white/5 rounded-full filter blur-xl animate-pulse-slow"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Target Multiplier Indicator -->
+                            <div v-if="isAnimating" 
+                                class="absolute left-0 right-0 h-0.5 bg-pink-500/70 z-5 transition-all duration-300"
+                                :style="{
+                                    bottom: `${getMultiplierPosition(targetMultiplier)}%`,
+                                }">
+                                <div class="absolute right-4 -top-3 px-2 py-0.5 bg-pink-500/20 text-pink-300 text-sm rounded">
+                                    Target: {{ targetMultiplier.toFixed(2) }}×
+                                </div>
+                                <div class="absolute -right-1 -top-1.5 w-3 h-3 bg-pink-500 rounded-full"></div>
+                            </div>
+                            
+                            <!-- Very Subtle Parallax (only when rocket is moving) -->
+                            <div v-if="isAnimating" class="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+                                <div class="absolute inset-0" :style="{ transform: `translateY(${rocketPosition * 0.02}px)` }"></div>
                             </div>
                         </div>
                     </div>
@@ -332,6 +445,119 @@
                 </div>
             </div>
         </div>
+
+        <!-- Profit Tracker Popup -->
+        <div 
+            v-if="showProfitTracker" 
+            class="fixed top-20 right-4 w-96 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 z-50"
+            :style="{ top: profitTrackerPosition.y + 'px', left: profitTrackerPosition.x + 'px' }"
+            @mousedown="startDrag"
+        >
+            <!-- Header with drag handle -->
+            <div class="flex items-center justify-between p-3 bg-slate-700 rounded-t-xl cursor-move" ref="profitTrackerHeader">
+                <h3 class="text-white font-semibold">Profit Tracker</h3>
+                <div class="flex space-x-2">
+                    <button @click="showProfitTracker = false" class="text-white/70 hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profit/Loss Display -->
+            <div class="p-4 border-b border-slate-700">
+                <div class="flex justify-between items-center">
+                    <span class="text-white/80">Session Profit/Loss:</span>
+                    <span 
+                        class="text-2xl font-bold"
+                        :class="{
+                            'text-emerald-400': sessionStats.profit > 0,
+                            'text-red-400': sessionStats.profit < 0,
+                            'text-white': sessionStats.profit === 0
+                        }"
+                    >
+                        {{ sessionStats.profit > 0 ? '+' : '' }}${{ sessionStats.profit.toFixed(2) }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Profit Chart -->
+            <div class="p-4 h-48 relative">
+                <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
+                    <!-- Chart grid lines -->
+                    <line x1="0" y1="50" x2="300" y2="50" stroke="#475569" stroke-width="1" stroke-dasharray="2,2" />
+                    <line v-for="i in 5" :key="`grid-${i}`" 
+                        :x1="i * 60" :y1="0" :x2="i * 60" :y2="100" 
+                        stroke="#475569" stroke-width="1" stroke-dasharray="2,2" />
+                    
+                    <!-- Zero line -->
+                    <line x1="0" y1="50" x2="300" y2="50" stroke="#94A3B8" stroke-width="1" />
+                    
+                    <!-- Profit line -->
+                    <polyline 
+                        :points="profitChartPoints" 
+                        fill="none" 
+                        stroke="url(#profit-gradient)" 
+                        stroke-width="2" 
+                    />
+                    
+                    <!-- Gradient definition -->
+                    <defs>
+                        <linearGradient id="profit-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#10B981" />
+                            <stop offset="50%" stop-color="#FFFFFF" />
+                            <stop offset="100%" stop-color="#EF4444" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                
+                <!-- Chart labels -->
+                <div class="absolute top-0 left-0 text-xs text-white/60">+${{ profitChartMax.toFixed(2) }}</div>
+                <div class="absolute bottom-0 left-0 text-xs text-white/60">-${{ Math.abs(profitChartMin).toFixed(2) }}</div>
+                <div class="absolute top-1/2 left-0 transform -translate-y-1/2 text-xs text-white/60">$0.00</div>
+            </div>
+
+            <!-- Session Stats -->
+            <div class="p-4 grid grid-cols-2 gap-4 border-t border-slate-700">
+                <div class="flex flex-col">
+                    <span class="text-xs text-white/60">Total Wagered</span>
+                    <span class="text-base font-semibold text-white">${{ sessionStats.totalWagered.toFixed(2) }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs text-white/60">Total Games</span>
+                    <span class="text-base font-semibold text-white">{{ sessionStats.totalGames }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs text-white/60">Wins</span>
+                    <span class="text-base font-semibold text-emerald-400">{{ sessionStats.wins }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs text-white/60">Losses</span>
+                    <span class="text-base font-semibold text-red-400">{{ sessionStats.losses }}</span>
+                </div>
+            </div>
+
+            <!-- Reset Button -->
+            <div class="p-4 border-t border-slate-700">
+                <button 
+                    @click="resetSessionStats"
+                    class="w-full p-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md transition-colors"
+                >
+                    Reset Session Stats
+                </button>
+            </div>
+        </div>
+
+        <!-- Profit Tracker Toggle Button -->
+        <button 
+            @click="showProfitTracker = !showProfitTracker"
+            class="fixed bottom-4 right-4 p-3 bg-slate-700 hover:bg-slate-600 text-white rounded-full shadow-lg transition-colors"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+            </svg>
+        </button>
     </div>
 </template>
 
@@ -359,30 +585,61 @@ export default {
 
             // Rocket animation state
             currentMultiplier: 1.00,
+            displayMultiplier: 1.00,
+            rocketPosition: 0,
             animationInterval: null,
+            multiplierUpdateInterval: null,
             isCrashing: false,
             crashTimeout: null,
 
-            // Planets (multiplier milestones)
-            planets: [
-                { value: 2, ringClass: 'bg-blue-500' },
-                { value: 5, ringClass: 'bg-green-500' },
-                { value: 10, ringClass: 'bg-yellow-500' },
-                { value: 25, ringClass: 'bg-orange-500' },
-                { value: 50, ringClass: 'bg-red-500' },
-                { value: 100, ringClass: 'bg-purple-500' }
+            // Multiplier markers with enhanced colors
+            multiplierMarkers: [
+                { value: 1.5, bgClass: 'bg-blue-500' },
+                { value: 2, bgClass: 'bg-blue-500' },
+                { value: 3, bgClass: 'bg-blue-500' },
+                { value: 5, bgClass: 'bg-green-500' },
+                { value: 10, bgClass: 'bg-yellow-500' },
+                { value: 25, bgClass: 'bg-orange-500' },
+                { value: 50, bgClass: 'bg-red-500' },
+                { value: 100, bgClass: 'bg-purple-500' },
+                { value: 200, bgClass: 'bg-fuchsia-500' },
+                { value: 500, bgClass: 'bg-pink-500' }
             ],
 
-            // Cosmic creatures
+            // Cosmic creature
             showCosmicCreature: false,
-            cosmicCreaturePosition: { x: 0, y: 0, scale: 1 },
-            cosmicCreatureTimeout: null
+            cosmicCreaturePosition: { x: 0, y: 0, showBeam: false },
+            cosmicCreatureTimeout: null,
+            cosmicCreatureFloat: 0,
+            cosmicCreatureFloatInterval: null,
+
+            // Profit tracker
+            showProfitTracker: false,
+            profitTrackerPosition: { x: 20, y: 20 },
+            isDragging: false,
+            dragOffset: { x: 0, y: 0 },
+            sessionHistory: [],
+            sessionStats: {
+                profit: 0,
+                totalWagered: 0,
+                totalGames: 0,
+                wins: 0,
+                losses: 0
+            }
         };
     },
 
     computed: {
         winChance() {
             return (1 / this.targetMultiplier) * 100;
+        },
+
+        winRate() {
+            if (this.sessionStats.wins === 0 || this.sessionStats.totalGames === 0) {
+                return 0;
+            }
+
+            return ((this.sessionStats.wins / this.sessionStats.totalGames) * 100).toFixed(2);
         },
 
         canPlay() {
@@ -392,15 +649,33 @@ export default {
                 this.targetMultiplier <= 999;
         },
 
-        stats() {
-            const totalGames = this.gameHistory.length;
-            const wins = this.gameHistory.filter(game => game.win).length;
-            const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : '0.0';
-            const profit = this.gameHistory.reduce((total, game) => {
-                return total + (game.win ? game.betAmount * (game.targetMultiplier - 1) : -game.betAmount);
-            }, 0);
+        // Profit chart data
+        profitChartPoints() {
+            if (this.sessionHistory.length === 0) {
+                return "0,50 300,50"; // Flat line at zero
+            }
 
-            return { totalGames, wins, winRate, profit };
+            const maxEntries = 30; // Show up to 30 most recent games
+            const entries = this.sessionHistory.slice(-maxEntries);
+            const step = 300 / Math.max(entries.length - 1, 1);
+
+            return entries.map((profit, index) => {
+                const x = index * step;
+                // Map profit to y coordinate (50 is the center/zero line)
+                const range = Math.max(Math.abs(this.profitChartMin), Math.abs(this.profitChartMax));
+                const y = 50 - (profit / range * 50);
+                return `${x},${y}`;
+            }).join(' ');
+        },
+
+        profitChartMax() {
+            if (this.sessionHistory.length === 0) return 10;
+            return Math.max(10, ...this.sessionHistory);
+        },
+
+        profitChartMin() {
+            if (this.sessionHistory.length === 0) return -10;
+            return Math.min(-10, ...this.sessionHistory);
         }
     },
 
@@ -437,11 +712,13 @@ export default {
             this.isAnimating = true;
             this.isCrashing = false;
             this.currentMultiplier = 1.00;
+            this.displayMultiplier = 1.00;
+            this.rocketPosition = 0;
 
             // Clear any existing intervals/timeouts
             this.clearAnimationTimers();
 
-            // Start the animation
+            // Start the animation with smooth updates
             this.animationInterval = setInterval(() => {
                 // Increase the multiplier at a rate that feels good
                 // Slower at the beginning, faster as it goes up
@@ -451,35 +728,53 @@ export default {
 
                 this.currentMultiplier += increment;
 
+                // Update the rocket position smoothly
+                this.rocketPosition = this.getMultiplierPosition(this.currentMultiplier);
+
                 // Check for cosmic creature appearance (rare)
-                if (this.currentMultiplier > 10 && Math.random() < 0.005 && !this.showCosmicCreature) {
+                if (this.currentMultiplier > 5 && Math.random() < 0.005 && !this.showCosmicCreature) {
                     this.showCosmicCreature = true;
+
+                    // Position the UFO
                     this.cosmicCreaturePosition = {
-                        x: Math.random() * 80 + 10,
-                        y: Math.random() * 60 + 20,
-                        scale: Math.random() * 0.5 + 0.8
+                        x: Math.random() * 60 + 20, // Keep it more centered
+                        y: Math.random() * 40 + 20, // Keep it in the middle area
+                        showBeam: Math.random() > 0.5 // 50% chance to show beam
                     };
+
+                    // Start the floating animation
+                    let direction = 1;
+                    let floatAmount = 0;
+
+                    this.cosmicCreatureFloatInterval = setInterval(() => {
+                        floatAmount += 0.2 * direction;
+                        if (floatAmount > 10 || floatAmount < -10) {
+                            direction *= -1;
+                        }
+                        this.cosmicCreatureFloat = floatAmount;
+                    }, 50);
 
                     // Hide the creature after a few seconds
                     this.cosmicCreatureTimeout = setTimeout(() => {
                         this.showCosmicCreature = false;
-                    }, 3000);
+                        clearInterval(this.cosmicCreatureFloatInterval);
+                    }, 4000);
                 }
 
-                // Play sound effects when passing milestone multipliers
-                this.planets.forEach(planet => {
-                    if (this.currentMultiplier >= planet.value && this.currentMultiplier - increment < planet.value) {
-                        // Would play sound here if we had audio
-                        console.log(`Passed ${planet.value}x multiplier!`);
-                    }
-                });
+                // Update the display multiplier (smoother than the actual multiplier)
+                this.displayMultiplier = this.currentMultiplier;
 
-            }, 50);
+            }, 50); // 20 FPS for smooth animation
         },
 
         stopRocketAnimation(win, multiplierAchieved) {
             // Clear the animation interval
             clearInterval(this.animationInterval);
+
+            // Set the final multiplier
+            this.currentMultiplier = multiplierAchieved;
+            this.displayMultiplier = multiplierAchieved;
+            this.rocketPosition = this.getMultiplierPosition(multiplierAchieved);
 
             if (!win) {
                 // Crash animation
@@ -497,8 +792,10 @@ export default {
 
         clearAnimationTimers() {
             if (this.animationInterval) clearInterval(this.animationInterval);
+            if (this.multiplierUpdateInterval) clearInterval(this.multiplierUpdateInterval);
             if (this.crashTimeout) clearTimeout(this.crashTimeout);
             if (this.cosmicCreatureTimeout) clearTimeout(this.cosmicCreatureTimeout);
+            if (this.cosmicCreatureFloatInterval) clearInterval(this.cosmicCreatureFloatInterval);
         },
 
         // Helper methods for the animation
@@ -515,15 +812,6 @@ export default {
             const logValue = Math.log(Math.max(multiplier, minMultiplier)) / Math.log(logBase);
 
             return ((logValue - logMin) / (logMax - logMin)) * 100;
-        },
-
-        getTrailColorClass(multiplier) {
-            // Return different color classes based on the multiplier
-            if (multiplier < 2) return 'bg-blue-500';
-            if (multiplier < 5) return 'bg-green-500';
-            if (multiplier < 10) return 'bg-yellow-500';
-            if (multiplier < 50) return 'bg-orange-500';
-            return 'bg-red-500';
         },
 
         getRandomExplosionColor() {
@@ -584,16 +872,20 @@ export default {
                             multiplierAchieved: response.data.multiplierAchieved
                         };
 
-                        this.gameHistory.unshift({
+                        const gameResult = {
                             targetMultiplier: this.targetMultiplier,
                             multiplierAchieved: response.data.multiplierAchieved,
                             betAmount: this.betAmount,
                             win: response.data.win
-                        });
+                        };
 
+                        this.gameHistory.unshift(gameResult);
                         if (this.gameHistory.length > 10) {
                             this.gameHistory.pop();
                         }
+
+                        // Update session stats
+                        this.updateSessionStats(gameResult);
 
                         // Update user data
                         this.auth.fetchUser();
@@ -605,6 +897,73 @@ export default {
                 // Handle network error
                 this.stopRocketAnimation(false, 1);
             }
+        },
+
+        // Session stats methods
+        updateSessionStats(gameResult) {
+            // Update running profit
+            const profitChange = gameResult.win
+                ? gameResult.betAmount * (gameResult.targetMultiplier - 1)
+                : -gameResult.betAmount;
+
+            // Update session history for chart
+            const currentProfit = this.sessionHistory.length > 0
+                ? this.sessionHistory[this.sessionHistory.length - 1]
+                : 0;
+            this.sessionHistory.push(currentProfit + profitChange);
+
+            // Update session stats
+            this.sessionStats.profit += profitChange;
+            this.sessionStats.totalWagered += gameResult.betAmount;
+            this.sessionStats.totalGames++;
+            if (gameResult.win) {
+                this.sessionStats.wins++;
+            } else {
+                this.sessionStats.losses++;
+            }
+        },
+
+        resetSessionStats() {
+            this.sessionHistory = [];
+            this.sessionStats = {
+                profit: 0,
+                totalWagered: 0,
+                totalGames: 0,
+                wins: 0,
+                losses: 0
+            };
+        },
+
+        // Profit tracker drag functionality
+        startDrag(event) {
+            // Only start drag if clicking on the header
+            if (event.target.closest('.cursor-move')) {
+                this.isDragging = true;
+                const rect = event.target.getBoundingClientRect();
+                this.dragOffset = {
+                    x: event.clientX - this.profitTrackerPosition.x,
+                    y: event.clientY - this.profitTrackerPosition.y
+                };
+
+                // Add event listeners for drag and drop
+                document.addEventListener('mousemove', this.onDrag);
+                document.addEventListener('mouseup', this.stopDrag);
+            }
+        },
+
+        onDrag(event) {
+            if (this.isDragging) {
+                this.profitTrackerPosition = {
+                    x: event.clientX - this.dragOffset.x,
+                    y: event.clientY - this.dragOffset.y
+                };
+            }
+        },
+
+        stopDrag() {
+            this.isDragging = false;
+            document.removeEventListener('mousemove', this.onDrag);
+            document.removeEventListener('mouseup', this.stopDrag);
         }
     },
 
@@ -622,11 +981,21 @@ export default {
         // Initialize
         this.validateMultiplier();
         this.validateBetAmount();
+
+        // Initialize profit tracker position
+        this.profitTrackerPosition = {
+            x: window.innerWidth - 420,
+            y: 20
+        };
     },
 
     beforeUnmount() {
         // Clean up any running animations
         this.clearAnimationTimers();
+
+        // Remove event listeners
+        document.removeEventListener('mousemove', this.onDrag);
+        document.removeEventListener('mouseup', this.stopDrag);
     }
 };
 </script>
@@ -650,93 +1019,16 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* Rocket Animation Styles */
-.rocket-animation-container {
-    perspective: 1000px;
-    overflow: hidden;
-}
-
-/* Stars */
-.star {
-    transition: all 0.3s ease;
-}
-
-@keyframes twinkle {
-
-    0%,
-    100% {
-        opacity: 0.3;
-    }
-
-    50% {
-        opacity: 1;
-    }
-}
-
-.animate-twinkle {
-    animation: twinkle 2s infinite;
-}
-
-@keyframes streak {
-    0% {
-        transform: translateY(0);
-    }
-
-    100% {
-        transform: translateY(200px);
-        opacity: 0;
-    }
-}
-
-.animate-streak {
-    animation: streak 1s linear infinite;
-}
-
-/* Planets */
-.planet-ring {
-    width: 24px;
-    height: 24px;
-    opacity: 0.5;
-    transition: all 0.3s ease;
-}
-
-.planet-reached .planet-ring {
-    opacity: 1;
-    box-shadow: 0 0 10px 2px currentColor;
-    animation: pulse 1s ease-out;
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-        opacity: 0.7;
-    }
-
-    50% {
-        transform: scale(1.5);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 0.7;
-    }
-}
-
-/* Rocket */
-.rocket {
-    transition: transform 0.2s ease;
-}
-
 .rocket-flying {
-    animation: slight-wobble 0.5s ease infinite;
+    animation: slight-wobble 3s ease-in-out infinite;
 }
 
 .rocket-crashed {
-    animation: shake 0.2s ease infinite;
+    animation: shake 0.2s ease-in-out infinite;
 }
 
 .rocket-landed {
-    animation: bounce 1s ease;
+    animation: bounce 1s ease-out;
 }
 
 @keyframes slight-wobble {
@@ -775,57 +1067,154 @@ input[type="range"]::-webkit-slider-thumb {
     }
 }
 
-/* Trail particles */
-.trail-particle {
-    animation: fade-out 0.5s linear infinite;
-}
-
-@keyframes fade-out {
-    0% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
-}
-
-/* Explosion */
-.explosion-particle {
-    animation: explode 1s ease-out forwards;
-}
-
-@keyframes explode {
-    0% {
-        transform: translate(0, 0);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(var(--tx, 100px), var(--ty, 100px));
-        opacity: 0;
-    }
-}
-
-/* Confetti */
-.confetti-particle {
-    animation: fall-rotate 2s ease-in-out forwards;
-}
-
-@keyframes fall-rotate {
-    0% {
-        transform: translateY(0) rotate(0deg);
-        opacity: 1;
-    }
-
-    100% {
-        transform: translateY(100px) rotate(360deg);
-        opacity: 0;
-    }
-}
-
 /* Multiplier display */
 .multiplier-display {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Subtle star pulsing */
+@keyframes pulse-subtle {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.animate-pulse-subtle {
+    animation: pulse-subtle 3s infinite;
+}
+
+/* Slow pulse for multiplier */
+@keyframes pulse-slow {
+
+    0%,
+    100% {
+        opacity: 0.2;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 2s infinite;
+}
+
+/* Flame animation */
+@keyframes flame {
+
+    0%,
+    100% {
+        height: 16px;
+        border-radius: 0 0 50% 50%;
+    }
+
+    50% {
+        height: 18px;
+        border-radius: 0 0 40% 40%;
+    }
+}
+
+.animate-flame {
+    animation: flame 0.2s infinite;
+}
+
+@keyframes inner-flame {
+
+    0%,
+    100% {
+        height: 12px;
+        opacity: 0.8;
+    }
+
+    50% {
+        height: 14px;
+        opacity: 1;
+    }
+}
+
+.animate-inner-flame {
+    animation: inner-flame 0.15s infinite;
+}
+
+/* Explosion animation */
+@keyframes explosion-flash {
+    0% {
+        opacity: 1;
+        transform: scale(0.1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.5);
+    }
+}
+
+.animate-explosion-flash {
+    animation: explosion-flash 0.5s ease-out forwards;
+}
+
+@keyframes shockwave {
+    0% {
+        transform: scale(0.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.animate-shockwave {
+    animation: shockwave 0.6s ease-out forwards;
+}
+
+@keyframes explosion-particle {
+    0% {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(calc(-50% + cos(var(--angle)) * var(--distance)),
+                calc(-50% + sin(var(--angle)) * var(--distance)));
+        opacity: 0;
+    }
+}
+
+/* UFO light animation */
+@keyframes ufo-light {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+.animate-ufo-light {
+    animation: ufo-light 1s infinite;
+}
+
+/* Shadow glow effect */
+.shadow-glow {
+    box-shadow: 0 0 8px var(--glow-color, rgba(255, 255, 255, 0.5));
 }
 </style>
