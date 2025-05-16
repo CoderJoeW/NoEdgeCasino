@@ -404,9 +404,13 @@
                                 <button 
                                     class="w-full bg-gradient-to-r from-rose-600 to-pink-600 text-white p-3 text-lg font-bold rounded-lg transition-all duration-200 shadow-md shadow-rose-600/30 tracking-wide disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
                                     @click="playGame" 
-                                    :disabled="!canPlay"
+                                    :disabled="!canPlay || isPlacingBet"
                                 >
-                                    PLAY
+                                    <span v-if="!isPlacingBet">Place Bet</span>
+                                    <span v-else class="flex items-center justify-center">
+                                        <svg class="animate-spin h-6 w-6 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                        Bet in progress...
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -629,6 +633,7 @@ export default {
 
             showProfitTracker: false,
             toggleTurboMode: false,
+            isPlacingBet: false,
             profitTrackerPosition: { x: 20, y: 20 },
             isDragging: false,
             dragOffset: { x: 0, y: 0 },
@@ -853,7 +858,8 @@ export default {
         },
 
         async playGame() {
-            if (!this.canPlay) return;
+            if (!this.canPlay || this.isPlacingBet) return;
+            this.isPlacingBet = true;
 
             try {
                 await api.get('/sanctum/csrf-cookie');
@@ -865,6 +871,7 @@ export default {
                 if (response.status !== 200) {
                     // Handle error (show notification or similar)
                     this.stopRocketAnimation(false, 1);
+                    this.isPlacingBet = false;
                     return;
                 }
 
@@ -894,6 +901,7 @@ export default {
                     this.updateSessionStats(gameResult);
                     this.auth.fetchUser();
                     this.globalBalance.loadGlobalPoolData();
+                    this.isPlacingBet = false;
                     return;
                 }
 
@@ -933,12 +941,14 @@ export default {
                         // Update user data
                         this.auth.fetchUser();
                         this.globalBalance.loadGlobalPoolData();
+                        this.isPlacingBet = false;
                     }
                 }, 50);
 
             } catch (e) {
                 // Handle network error
                 this.stopRocketAnimation(false, 1);
+                this.isPlacingBet = false;
             }
         },
 
