@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\GlobalPoolController;
+use App\Http\Controllers\LimboController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -49,3 +50,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/globalPool/balance', [GlobalPoolController::class, 'index']);
+
+
+// Games
+Route::post('/limbo/play', [LimboController::class, 'play']);
