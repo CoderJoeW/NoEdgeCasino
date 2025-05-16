@@ -182,7 +182,10 @@
 </template>
 
 <script>
+import { useAuthStore } from '@/store/authStore';
+import { useGlobalBalanceStore } from '@/store/globalBalanceStore';
 import GameHeader from './Global/GameHeader.vue';
+import api from '@/scripts/axios';
 
 export default {
     name: 'Limbo',
@@ -191,8 +194,9 @@ export default {
     },
     data() {
         return {
+            auth: useAuthStore(),
+            globalBalance: useGlobalBalanceStore(),
             // Game state
-            balance: 1000,
             targetMultiplier: 2.00,
             betAmount: 10,
             gameHistory: [],
@@ -212,7 +216,6 @@ export default {
         canPlay() {
             return !this.isAnimating &&
                 this.betAmount > 0 &&
-                this.betAmount <= this.balance &&
                 this.targetMultiplier >= 1.05 &&
                 this.targetMultiplier <= 999;
         },
@@ -241,8 +244,6 @@ export default {
         validateBetAmount() {
             if (this.betAmount < 0) {
                 this.betAmount = 0;
-            } else if (this.betAmount > this.balance) {
-                this.betAmount = this.balance;
             }
         },
 
@@ -252,56 +253,57 @@ export default {
         },
 
         doubleBet() {
-            this.betAmount = Math.min(this.betAmount * 2, this.balance);
+            this.betAmount = Math.min(this.betAmount * 2, this.auth.user.no_edge_cash);
         },
 
         maxBet() {
-            this.betAmount = this.balance;
+            this.betAmount = this.auth.user.no_edge_cash;
         },
 
-        playGame() {
+        async playGame() {
             if (!this.canPlay) return;
 
             this.isAnimating = true;
 
-            // Generate a random multiplier between 1.00 and a very high number
-            // The higher the number, the less likely to win with high multipliers
-            const randomMultiplier = 1 / Math.random();
+            try {
+                await api.get('/sanctum/csrf-cookie');
+                const response = await api.post('/api/limbo/play', {
+                    betAmount: this.betAmount,
+                    targetMultiplier: this.targetMultiplier
+                });
 
-            // Determine if player won
-            const won = randomMultiplier >= this.targetMultiplier;
+                if (response.status !== 200) {
+                    // Handle error (show notification or similar)
+                    this.isAnimating = false;
+                    return;
+                }
 
-            // Update last result
-            this.lastResult = {
-                played: true,
-                win: won,
-                multiplierAchieved: randomMultiplier
-            };
+                this.lastResult = {
+                    played: true,
+                    win: response.data.win,
+                    multiplierAchieved: response.data.multiplierAchieved
+                };
 
-            // Update balance
-            if (won) {
-                this.balance += this.betAmount * (this.targetMultiplier - 1);
-            } else {
-                this.balance -= this.betAmount;
+                this.gameHistory.unshift({
+                    targetMultiplier: this.targetMultiplier,
+                    multiplierAchieved: response.data.multiplierAchieved,
+                    betAmount: this.betAmount,
+                    win: response.data.win
+                });
+
+                if (this.gameHistory.length > 10) {
+                    this.gameHistory.pop();
+                }
+            } catch (e) {
+                // Handle network error
+            } finally {
+                setTimeout(() => {
+                    this.isAnimating = false;
+                }, 1500);
+
+                this.auth.fetchUser();
+                this.globalBalance.loadGlobalPoolData();
             }
-
-            // Add to history
-            this.gameHistory.unshift({
-                targetMultiplier: this.targetMultiplier,
-                multiplierAchieved: randomMultiplier,
-                betAmount: this.betAmount,
-                win: won
-            });
-
-            // Limit history to 10 items
-            if (this.gameHistory.length > 10) {
-                this.gameHistory.pop();
-            }
-
-            // Reset animation state after delay
-            setTimeout(() => {
-                this.isAnimating = false;
-            }, 1500);
         }
     },
 
