@@ -227,26 +227,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Fixed Landing Platform -->
-                            <div v-if="!isAnimating && lastResult.win && lastResult.played" 
-                                class="absolute left-1/2 transform -translate-x-1/2 w-40 h-6 z-5"
-                                :style="{
-                                    bottom: `${getMultiplierPosition(lastResult.multiplierAchieved) - 2}%`,
-                                }">
-                                <!-- Platform with Glow -->
-                                <div class="relative w-full h-full">
-                                    <!-- Glow Effect -->
-                                    <div class="absolute -inset-1 bg-yellow-500/30 rounded-lg filter blur-md"></div>
-                                    
-                                    <!-- Platform Body -->
-                                    <div class="relative w-full h-full bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg shadow-lg">
-                                        <!-- Platform Details -->
-                                        <div class="absolute top-1 left-4 right-4 h-1 bg-yellow-300/50 rounded-full"></div>
-                                        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-10 h-3 bg-amber-700 rounded-b-lg"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
                             <!-- Fixed UFO with Smoother Animation -->
                             <div v-if="showCosmicCreature" 
                                 class="absolute transition-all duration-1000 ease-in-out z-20"
@@ -306,14 +286,39 @@
                             
                             <!-- Target Multiplier Indicator -->
                             <div v-if="isAnimating" 
-                                class="absolute left-0 right-0 h-0.5 bg-pink-500/70 z-5 transition-all duration-300"
+                                class="absolute left-0 right-0 h-0.5 bg-amber-500/70 z-5 transition-all duration-300"
                                 :style="{
                                     bottom: `${getMultiplierPosition(targetMultiplier)}%`,
                                 }">
-                                <div class="absolute right-4 -top-3 px-2 py-0.5 bg-pink-500/20 text-pink-300 text-sm rounded">
+                                <div class="absolute right-4 -top-3 px-2 py-0.5 bg-amber-500/20 text-amber-300 text-sm rounded">
                                     Target: {{ targetMultiplier.toFixed(2) }}×
                                 </div>
-                                <div class="absolute -right-1 -top-1.5 w-3 h-3 bg-pink-500 rounded-full"></div>
+                                <div class="absolute -right-1 -top-1.5 w-3 h-3 bg-amber-500 rounded-full"></div>
+                            </div>
+
+                            <!-- Final Multiplier Indicator (shown after game ends) -->
+                            <div v-if="lastResult.played && !isAnimating" 
+                                class="absolute left-0 right-0 h-0.5 z-5 transition-all duration-300"
+                                :class="{
+                                    'bg-amber-500/70': lastResult.win,
+                                    'bg-red-500/70': !lastResult.win
+                                }"
+                                :style="{
+                                    bottom: `${getMultiplierPosition(lastResult.multiplierAchieved)}%`,
+                                }">
+                                <div class="absolute right-4 -top-3 px-2 py-0.5 text-sm rounded"
+                                    :class="{
+                                        'bg-amber-500/20 text-amber-300': lastResult.win,
+                                        'bg-red-500/20 text-red-300': !lastResult.win
+                                    }">
+                                    Final: {{ lastResult.multiplierAchieved.toFixed(2) }}×
+                                </div>
+                                <div class="absolute -right-1 -top-1.5 w-3 h-3 rounded-full"
+                                    :class="{
+                                        'bg-amber-500': lastResult.win,
+                                        'bg-red-500': !lastResult.win
+                                    }">
+                                </div>
                             </div>
                             
                             <!-- Very Subtle Parallax (only when rocket is moving) -->
@@ -1270,15 +1275,18 @@ input[type="range"]::-webkit-slider-thumb {
 .shadow-glow {
     box-shadow: 0 0 8px var(--glow-color, rgba(255, 255, 255, 0.5));
 }
+
 .animate-turbo-glow {
-  animation: turbo-glow 1s infinite alternate;
+    animation: turbo-glow 1s infinite alternate;
 }
+
 @keyframes turbo-glow {
-  0% {
-    box-shadow: 0 0 0px #22ff00, 0 0 20px #22ff00, 0 0 40px #22ff00;
-  }
-  100% {
-    box-shadow: 0 0 16px #22ff00, 0 0 32px #22ff00, 0 0 64px #22ff00;
-  }
+    0% {
+        box-shadow: 0 0 0px #22ff00, 0 0 20px #22ff00, 0 0 40px #22ff00;
+    }
+
+    100% {
+        box-shadow: 0 0 16px #22ff00, 0 0 32px #22ff00, 0 0 64px #22ff00;
+    }
 }
 </style>
