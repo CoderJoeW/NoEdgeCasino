@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', {
         user: null,
         isAuthenticated: false,
     }),
+    persist: true,
     actions: {
         async fetchUser() {
             try {
