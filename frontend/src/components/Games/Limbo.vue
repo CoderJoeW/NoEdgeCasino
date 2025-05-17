@@ -332,8 +332,29 @@
                     <div class="lg:col-span-1 flex flex-col gap-4">
                         <!-- Betting Controls Card -->
                         <div class="bg-slate-800/50 rounded-lg p-4 flex-1">
-                            <!-- Compact Controls Layout -->
-                            <div class="space-y-4">
+                            <!-- Mode Toggle -->
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-white/80 text-sm">Betting Mode</span>
+                                <div class="flex bg-slate-700 rounded-lg p-1">
+                                    <button 
+                                        @click="autoBetMode = false" 
+                                        class="px-3 py-1 text-sm rounded-md transition-colors"
+                                        :class="!autoBetMode ? 'bg-slate-600 text-white' : 'text-white/60 hover:text-white/80'"
+                                    >
+                                        Manual
+                                    </button>
+                                    <button 
+                                        @click="autoBetMode = true" 
+                                        class="px-3 py-1 text-sm rounded-md transition-colors"
+                                        :class="autoBetMode ? 'bg-slate-600 text-white' : 'text-white/60 hover:text-white/80'"
+                                    >
+                                        Auto
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Manual Betting Controls -->
+                            <div v-if="!autoBetMode" class="space-y-4">
                                 <!-- Target Multiplier -->
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
@@ -349,21 +370,10 @@
                                             min="1.05" 
                                             max="999" 
                                             step="0.01"
-                                            @input="validateMultiplier"
+                                            @blur="validateMultiplier"
                                             class="w-full p-2 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-lg font-semibold text-center"
                                         >
                                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-lg font-semibold text-white/80">×</span>
-                                    </div>
-                                    <div class="w-full mt-1">
-                                        <input 
-                                            type="range" 
-                                            v-model="targetMultiplier" 
-                                            min="1.05" 
-                                            max="999" 
-                                            step="0.01"
-                                            @input="validateMultiplier"
-                                            class="w-full h-2 bg-slate-700 rounded-full appearance-none cursor-pointer"
-                                        >
                                     </div>
                                 </div>
 
@@ -404,20 +414,238 @@
                                         </button>
                                     </div>
                                 </div>
-
-                                <!-- Play Button -->
-                                <button 
-                                    class="w-full bg-gradient-to-r from-rose-600 to-pink-600 text-white p-3 text-lg font-bold rounded-lg transition-all duration-200 shadow-md shadow-rose-600/30 tracking-wide disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-                                    @click="playGame" 
-                                    :disabled="!canPlay || isPlacingBet"
-                                >
-                                    <span v-if="!isPlacingBet">Place Bet</span>
-                                    <span v-else class="flex items-center justify-center">
-                                        <svg class="animate-spin h-6 w-6 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
-                                        Bet in progress...
-                                    </span>
-                                </button>
                             </div>
+
+                            <!-- Auto Betting Controls -->
+                            <div v-else class="space-y-4">
+                                <!-- Base Bet Amount -->
+                                <div>
+                                    <label class="text-sm text-white/80 block mb-1">Base Bet Amount</label>
+                                    <div class="flex space-x-2">
+                                        <div class="relative flex-1">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-semibold text-white/80">$</span>
+                                            <input 
+                                                type="number" 
+                                                v-model="autoBetSettings.baseBetAmount" 
+                                                min="1" 
+                                                step="1"
+                                                @input="validateAutoBetAmount"
+                                                class="w-full p-2 pl-8 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-lg font-semibold text-center"
+                                                :disabled="isAutoBetting"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Current Bet Display (when auto betting is active) -->
+                                <div v-if="isAutoBetting" class="mt-2 p-2 bg-black/30 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-white/80">Current Bet:</span>
+                                        <span class="text-base font-semibold text-white">${{ autoBetStats.currentBet.toFixed(2) }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Target Multiplier -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="text-sm text-white/80">Target Multiplier</label>
+                                        <div class="text-sm bg-black/20 px-2 py-1 rounded font-semibold text-white">
+                                            Win Chance: {{ (1 / autoBetSettings.targetMultiplier * 100).toFixed(2) }}%
+                                        </div>
+                                    </div>
+                                    <div class="relative">
+                                        <input 
+                                            type="number" 
+                                            v-model="autoBetSettings.targetMultiplier" 
+                                            min="1.05" 
+                                            max="999" 
+                                            step="0.01"
+                                            @blur="validateAutoMultiplier"
+                                            class="w-full p-2 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-lg font-semibold text-center"
+                                            :disabled="isAutoBetting"
+                                        >
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-lg font-semibold text-white/80">×</span>
+                                    </div>
+                                </div>
+
+                                <!-- Number of Games -->
+                                <div>
+                                    <label class="text-sm text-white/80 block mb-1">Number of Games</label>
+                                    <div class="flex space-x-2">
+                                        <div class="relative flex-1">
+                                            <input 
+                                                type="number" 
+                                                v-model="autoBetSettings.numberOfGames" 
+                                                min="1" 
+                                                step="1"
+                                                class="w-full p-2 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-lg font-semibold text-center"
+                                                :disabled="autoBetSettings.infiniteGames || isAutoBetting"
+                                                :class="{ 'opacity-50': autoBetSettings.infiniteGames }"
+                                            >
+                                        </div>
+                                        <div class="flex items-center">
+                                            <label class="flex items-center space-x-2 cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    v-model="autoBetSettings.infiniteGames" 
+                                                    class="form-checkbox h-5 w-5 text-rose-600 rounded border-slate-700 bg-slate-800"
+                                                    :disabled="isAutoBetting"
+                                                >
+                                                <span class="text-white/80 text-sm">∞</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- On Win Strategy -->
+                                <div>
+                                    <label class="text-sm text-white/80 block mb-1">On Win</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button 
+                                            @click="autoBetSettings.onWinAction = 'reset'"
+                                            class="p-2 text-sm rounded-md transition-colors"
+                                            :class="autoBetSettings.onWinAction === 'reset' ? 'bg-slate-600 text-white' : 'bg-slate-700 text-white/70 hover:text-white'"
+                                            :disabled="isAutoBetting"
+                                        >
+                                            Reset to Base
+                                        </button>
+                                        <button 
+                                            @click="autoBetSettings.onWinAction = 'increase'"
+                                            class="p-2 text-sm rounded-md transition-colors"
+                                            :class="autoBetSettings.onWinAction === 'increase' ? 'bg-slate-600 text-white' : 'bg-slate-700 text-white/70 hover:text-white'"
+                                            :disabled="isAutoBetting"
+                                        >
+                                            Increase Bet
+                                        </button>
+                                    </div>
+                                    <div v-if="autoBetSettings.onWinAction === 'increase'" class="mt-2">
+                                        <div class="flex items-center space-x-2">
+                                            <input 
+                                                type="number" 
+                                                v-model="autoBetSettings.onWinIncrease" 
+                                                min="1" 
+                                                max="1000"
+                                                class="w-full p-2 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-base font-semibold text-center"
+                                                :disabled="isAutoBetting"
+                                            >
+                                            <span class="text-white/80 text-lg">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- On Loss Strategy -->
+                                <div>
+                                    <label class="text-sm text-white/80 block mb-1">On Loss</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button 
+                                            @click="autoBetSettings.onLossAction = 'reset'"
+                                            class="p-2 text-sm rounded-md transition-colors"
+                                            :class="autoBetSettings.onLossAction === 'reset' ? 'bg-slate-600 text-white' : 'bg-slate-700 text-white/70 hover:text-white'"
+                                            :disabled="isAutoBetting"
+                                        >
+                                            Reset to Base
+                                        </button>
+                                        <button 
+                                            @click="autoBetSettings.onLossAction = 'increase'"
+                                            class="p-2 text-sm rounded-md transition-colors"
+                                            :class="autoBetSettings.onLossAction === 'increase' ? 'bg-slate-600 text-white' : 'bg-slate-700 text-white/70 hover:text-white'"
+                                            :disabled="isAutoBetting"
+                                        >
+                                            Increase Bet
+                                        </button>
+                                    </div>
+                                    <div v-if="autoBetSettings.onLossAction === 'increase'" class="mt-2">
+                                        <div class="flex items-center space-x-2">
+                                            <input 
+                                                type="number" 
+                                                v-model="autoBetSettings.onLossIncrease" 
+                                                min="1" 
+                                                max="1000"
+                                                class="w-full p-2 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-base font-semibold text-center"
+                                                :disabled="isAutoBetting"
+                                            >
+                                            <span class="text-white/80 text-lg">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stop Conditions -->
+                                <div>
+                                    <label class="text-sm text-white/80 block mb-1">Stop Conditions (0 = disabled)</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="text-xs text-white/60 block mb-1">Stop on Net Gain</label>
+                                            <div class="relative">
+                                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-white/80">$</span>
+                                                <input 
+                                                    type="number" 
+                                                    v-model="autoBetSettings.stopOnProfit" 
+                                                    min="0" 
+                                                    step="1"
+                                                    class="w-full p-1 pl-7 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-sm font-semibold text-center"
+                                                    :disabled="isAutoBetting"
+                                                >
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-white/60 block mb-1">Stop on Net Loss</label>
+                                            <div class="relative">
+                                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-white/80">$</span>
+                                                <input 
+                                                    type="number" 
+                                                    v-model="autoBetSettings.stopOnLoss" 
+                                                    min="0" 
+                                                    step="1"
+                                                    class="w-full p-1 pl-7 rounded-lg border-2 border-slate-700 bg-black/20 text-white text-sm font-semibold text-center"
+                                                    :disabled="isAutoBetting"
+                                                >
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Auto Bet Stats (only shown during auto betting) -->
+                            <div v-if="isAutoBetting" class="mt-4 p-3 bg-black/20 rounded-lg">
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                        <span class="text-white/60">Games Played:</span>
+                                        <span class="text-white font-semibold ml-1">{{ autoBetStats.gamesPlayed }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-white/60">Current Bet:</span>
+                                        <span class="text-white font-semibold ml-1">${{ autoBetStats.currentBet.toFixed(2) }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-white/60">Session Profit:</span>
+                                        <span 
+                                            :class="{
+                                                'text-emerald-400 font-semibold': autoBetStats.sessionProfit > 0,
+                                                'text-red-400 font-semibold': autoBetStats.sessionProfit < 0,
+                                                'text-white font-semibold': autoBetStats.sessionProfit === 0
+                                            }"
+                                            class="ml-1"
+                                        >
+                                            {{ autoBetStats.sessionProfit > 0 ? '+' : '' }}${{ autoBetStats.sessionProfit.toFixed(2) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Play Button -->
+                            <button 
+                                class="w-full mt-4 bg-gradient-to-r from-rose-600 to-pink-600 text-white p-3 text-lg font-bold rounded-lg transition-all duration-200 shadow-md shadow-rose-600/30 tracking-wide disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                                @click="autoBetMode ? toggleAutoBet() : playGame()" 
+                                :disabled="(autoBetMode ? !canAutoPlay : !canPlay) || isPlacingBet"
+                            >
+                                <span v-if="!autoBetMode && !isPlacingBet">Place Bet</span>
+                                <span v-else-if="autoBetMode && !isAutoBetting && !isPlacingBet">Start Auto Bet</span>
+                                <span v-else-if="autoBetMode && isAutoBetting && !isPlacingBet">Stop Auto Bet</span>
+                                <span v-else class="flex items-center justify-center">
+                                    <svg class="animate-spin h-6 w-6 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                                    Bet in progress...
+                                </span>
+                            </button>
                         </div>
 
                         <!-- Game History -->
@@ -649,7 +877,30 @@ export default {
                 totalGames: 0,
                 wins: 0,
                 losses: 0
-            }
+            },
+
+            // Auto betting
+            autoBetMode: false,
+            isAutoBetting: false,
+            autoBetSettings: {
+                baseBetAmount: 10,
+                targetMultiplier: 2.00,
+                numberOfGames: 10,
+                infiniteGames: false,
+                onWinAction: 'reset', // 'reset' or 'increase'
+                onWinIncrease: 10, // percentage
+                onLossAction: 'reset', // 'reset' or 'increase'
+                onLossIncrease: 10, // percentage
+                stopOnProfit: 0,
+                stopOnLoss: 0
+            },
+            autoBetStats: {
+                gamesPlayed: 0,
+                currentBet: 10,
+                sessionProfit: 0,
+                startingBalance: 0
+            },
+            autoBetTimeout: null
         };
     },
 
@@ -671,6 +922,15 @@ export default {
                 this.betAmount > 0 &&
                 this.targetMultiplier >= 1.05 &&
                 this.targetMultiplier <= 999;
+        },
+
+        canAutoPlay() {
+            return !this.isAnimating &&
+                !this.isPlacingBet &&
+                this.autoBetSettings.baseBetAmount > 0 &&
+                this.autoBetSettings.targetMultiplier >= 1.05 &&
+                this.autoBetSettings.targetMultiplier <= 999 &&
+                (this.autoBetSettings.infiniteGames || this.autoBetSettings.numberOfGames > 0);
         },
 
         // Profit chart data
@@ -705,16 +965,30 @@ export default {
 
     methods: {
         validateMultiplier() {
-            if (this.targetMultiplier < 1.05) {
+            if (this.targetMultiplier < 1.05 || isNaN(this.targetMultiplier)) {
                 this.targetMultiplier = 1.05;
             } else if (this.targetMultiplier > 999) {
                 this.targetMultiplier = 999;
             }
         },
 
+        validateAutoMultiplier() {
+            if (this.autoBetSettings.targetMultiplier < 1.05 || isNaN(this.autoBetSettings.targetMultiplier)) {
+                this.autoBetSettings.targetMultiplier = 1.05;
+            } else if (this.autoBetSettings.targetMultiplier > 999) {
+                this.autoBetSettings.targetMultiplier = 999;
+            }
+        },
+
         validateBetAmount() {
             if (this.betAmount < 0) {
                 this.betAmount = 0;
+            }
+        },
+
+        validateAutoBetAmount() {
+            if (this.autoBetSettings.baseBetAmount < 0) {
+                this.autoBetSettings.baseBetAmount = 0;
             }
         },
 
@@ -820,6 +1094,7 @@ export default {
             if (this.crashTimeout) clearTimeout(this.crashTimeout);
             if (this.cosmicCreatureTimeout) clearTimeout(this.cosmicCreatureTimeout);
             if (this.cosmicCreatureFloatInterval) clearInterval(this.cosmicCreatureFloatInterval);
+            if (this.autoBetTimeout) clearTimeout(this.autoBetTimeout);
         },
 
         // Helper methods for the animation
@@ -907,6 +1182,12 @@ export default {
                     this.auth.fetchUser();
                     this.globalBalance.loadGlobalPoolData();
                     this.isPlacingBet = false;
+
+                    // If auto betting is active, continue with next bet
+                    if (this.isAutoBetting) {
+                        this.processAutoBetResult(gameResult);
+                    }
+
                     return;
                 }
 
@@ -947,6 +1228,11 @@ export default {
                         this.auth.fetchUser();
                         this.globalBalance.loadGlobalPoolData();
                         this.isPlacingBet = false;
+
+                        // If auto betting is active, continue with next bet
+                        if (this.isAutoBetting) {
+                            this.processAutoBetResult(gameResult);
+                        }
                     }
                 }, 50);
 
@@ -954,7 +1240,121 @@ export default {
                 // Handle network error
                 this.stopRocketAnimation(false, 1);
                 this.isPlacingBet = false;
+
+                // Stop auto betting on error
+                if (this.isAutoBetting) {
+                    this.stopAutoBet();
+                }
             }
+        },
+
+        // Auto betting methods
+        toggleAutoBet() {
+            if (this.isAutoBetting) {
+                this.stopAutoBet();
+            } else {
+                this.startAutoBet();
+            }
+        },
+
+        startAutoBet() {
+            if (!this.canAutoPlay) return;
+
+            this.isAutoBetting = true;
+            this.autoBetStats = {
+                gamesPlayed: 0,
+                currentBet: this.autoBetSettings.baseBetAmount,
+                sessionProfit: 0,
+                startingBalance: this.auth.user.no_edge_cash
+            };
+
+            // Set the initial bet amount and multiplier
+            this.betAmount = this.autoBetSettings.baseBetAmount;
+            this.targetMultiplier = this.autoBetSettings.targetMultiplier;
+
+            // Start the first bet
+            this.playGame();
+        },
+
+        stopAutoBet() {
+            this.isAutoBetting = false;
+            if (this.autoBetTimeout) {
+                clearTimeout(this.autoBetTimeout);
+                this.autoBetTimeout = null;
+            }
+        },
+
+        processAutoBetResult(gameResult) {
+            // Increment games played counter
+            this.autoBetStats.gamesPlayed++;
+
+            // Update auto bet session profit
+            const profitChange = gameResult.win
+                ? gameResult.betAmount * (gameResult.targetMultiplier - 1)
+                : -gameResult.betAmount;
+            this.autoBetStats.sessionProfit += profitChange;
+
+            // Check if we should stop auto betting
+            if (this.shouldStopAutoBet()) {
+                this.stopAutoBet();
+                return;
+            }
+
+            // Adjust bet amount based on win/loss
+            if (gameResult.win) {
+                // On win strategy
+                if (this.autoBetSettings.onWinAction === 'reset') {
+                    this.autoBetStats.currentBet = this.autoBetSettings.baseBetAmount;
+                } else if (this.autoBetSettings.onWinAction === 'increase') {
+                    const increaseAmount = this.autoBetStats.currentBet * (this.autoBetSettings.onWinIncrease / 100);
+                    this.autoBetStats.currentBet += increaseAmount;
+                }
+            } else {
+                // On loss strategy
+                if (this.autoBetSettings.onLossAction === 'reset') {
+                    this.autoBetStats.currentBet = this.autoBetSettings.baseBetAmount;
+                } else if (this.autoBetSettings.onLossAction === 'increase') {
+                    const increaseAmount = this.autoBetStats.currentBet * (this.autoBetSettings.onLossIncrease / 100);
+                    this.autoBetStats.currentBet += increaseAmount;
+                }
+            }
+
+            // Make sure bet amount doesn't exceed balance
+            this.autoBetStats.currentBet = Math.min(this.autoBetStats.currentBet, this.auth.user.no_edge_cash);
+
+            // Update bet amount for next game
+            this.betAmount = this.autoBetStats.currentBet;
+
+            // Schedule next bet with a small delay
+            this.autoBetTimeout = setTimeout(() => {
+                if (this.isAutoBetting && !this.isAnimating && !this.isPlacingBet) {
+                    this.playGame();
+                }
+            }, 1000); // 1 second delay between auto bets
+        },
+
+        shouldStopAutoBet() {
+            // Check number of games limit
+            if (!this.autoBetSettings.infiniteGames && this.autoBetStats.gamesPlayed >= this.autoBetSettings.numberOfGames) {
+                return true;
+            }
+
+            // Check profit limit (only if greater than 0)
+            if (this.autoBetSettings.stopOnProfit > 0 && this.autoBetStats.sessionProfit >= this.autoBetSettings.stopOnProfit) {
+                return true;
+            }
+
+            // Check loss limit (only if greater than 0)
+            if (this.autoBetSettings.stopOnLoss > 0 && this.autoBetStats.sessionProfit <= -this.autoBetSettings.stopOnLoss) {
+                return true;
+            }
+
+            // Check if we have enough balance for another bet
+            if (this.auth.user.no_edge_cash < this.autoBetStats.currentBet) {
+                return true;
+            }
+
+            return false;
         },
 
         // Session stats methods
@@ -1026,10 +1426,6 @@ export default {
     },
 
     watch: {
-        targetMultiplier() {
-            this.validateMultiplier();
-        },
-
         betAmount() {
             this.validateBetAmount();
         }
