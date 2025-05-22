@@ -35,6 +35,14 @@ class LimboController extends Controller
             return response()->json(['error' => 'Insufficient balance'], 400);
         }
 
+        $payout = $betAmount * ($targetMultiplier - 1);
+
+        // Make sure win amount does not exceed 20% of global pool
+        $globalPool = GlobalPool::where('currency_name', '=', 'NoEdgeCash')->first();
+        if ($payout > ($globalPool->currency_value * 0.2)) {
+            return response()->json(['error' => 'Insufficient global pool'], 400);
+        }
+
         // Generate random multiplier (crash point)
         $random = mt_rand() / mt_getrandmax();
         $multiplierAchieved = 1 / $random;
@@ -47,7 +55,6 @@ class LimboController extends Controller
         // Update balance
         try {
             if ($win) {
-                $payout = $betAmount * ($targetMultiplier - 1);
                 $request->user()->increment('no_edge_cash', $payout);
                 GlobalPool::where('currency_name', '=', 'NoEdgeCash')->decrement('currency_value', $payout);
             } else {
