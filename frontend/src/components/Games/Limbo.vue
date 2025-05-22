@@ -1219,7 +1219,6 @@ export default {
                     this.errorMessage = 'An unexpected error occurred. Please try again.';
                 }
 
-                console.writeline(e.response);
                 this.stopRocketAnimation(false, 1);
                 this.isPlacingBet = false;
 
