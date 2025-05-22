@@ -604,6 +604,10 @@
                                 </div>
                             </div>
 
+                            <div v-if="errorMessage" class="mb-2 p-2 bg-red-700/80 text-white rounded text-center font-semibold">
+                                {{ errorMessage }}
+                            </div>
+
                             <!-- Play Button -->
                             <button 
                                 class="w-full mt-4 bg-gradient-to-r from-rose-600 to-pink-600 text-white p-3 text-lg font-bold rounded-lg transition-all duration-200 shadow-md shadow-rose-600/30 tracking-wide disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
@@ -801,6 +805,8 @@ export default {
         return {
             auth: useAuthStore(),
             globalBalance: useGlobalBalanceStore(),
+            errorMessage: '',
+
             // Game state
             targetMultiplier: 2.00,
             betAmount: 10,
@@ -1106,6 +1112,7 @@ export default {
         async playGame() {
             if (!this.canPlay || this.isPlacingBet) return;
             this.isPlacingBet = true;
+            this.errorMessage = '';
 
             try {
                 await api.get('/sanctum/csrf-cookie');
@@ -1113,13 +1120,6 @@ export default {
                     betAmount: this.betAmount,
                     targetMultiplier: this.targetMultiplier
                 });
-
-                if (response.status !== 200) {
-                    // Handle error (show notification or similar)
-                    this.stopRocketAnimation(false, 1);
-                    this.isPlacingBet = false;
-                    return;
-                }
 
                 // TURBO MODE: Skip animation and display result instantly
                 if (this.toggleTurboMode) {
@@ -1203,7 +1203,23 @@ export default {
                 }, 50);
 
             } catch (e) {
-                // Handle network error
+                if (e.response && e.response.data && e.response.data.error) {
+                    if (typeof e.response.data.error === 'string') {
+                        this.errorMessage = e.response.data.error;
+                    } else if (typeof e.response.data.error === 'object') {
+                        // Validation errors: show first error message
+                        const firstKey = Object.keys(e.response.data.error)[0];
+                        this.errorMessage = e.response.data.error[firstKey][0];
+                    } else {
+                        this.errorMessage = 'An error occurred. Please try again.';
+                    }
+                } else if (e.message) {
+                    this.errorMessage = e.message;
+                } else {
+                    this.errorMessage = 'An unexpected error occurred. Please try again.';
+                }
+
+                console.writeline(e.response);
                 this.stopRocketAnimation(false, 1);
                 this.isPlacingBet = false;
 
