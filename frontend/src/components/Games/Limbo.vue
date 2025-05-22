@@ -911,7 +911,7 @@ export default {
                 return "0,50 300,50"; // Flat line at zero
             }
 
-            const maxEntries = 30; // Show up to 30 most recent games
+            const maxEntries = 500; // Show up to 30 most recent games
             const entries = this.sessionHistory.slice(-maxEntries);
             const step = 300 / Math.max(entries.length - 1, 1);
 
