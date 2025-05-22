@@ -40,7 +40,7 @@ class LimboController extends Controller
         // Make sure win amount does not exceed 20% of global pool
         $globalPool = GlobalPool::where('currency_name', '=', 'NoEdgeCash')->first();
         if ($payout > ($globalPool->currency_value * 0.2)) {
-            return response()->json(['error' => 'Insufficient global pool'], 400);
+            return response()->json(['error' => 'Payout exceeds 20% of global pool'], 400);
         }
 
         // Generate random multiplier (crash point)
