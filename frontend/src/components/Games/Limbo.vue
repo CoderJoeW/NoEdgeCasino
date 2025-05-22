@@ -1037,25 +1037,23 @@ export default {
             }, 50); // 20 FPS for smooth animation
         },
 
-        stopRocketAnimation(win, multiplierAchieved) {
-            // Clear the animation interval
+        stopRocketAnimation(win, multiplierAchieved, callback) {
             clearInterval(this.animationInterval);
 
-            // Set the final multiplier
             this.currentMultiplier = multiplierAchieved;
             this.displayMultiplier = multiplierAchieved;
             this.rocketPosition = this.getMultiplierPosition(multiplierAchieved);
 
             if (!win) {
-                // Crash animation
                 this.isCrashing = true;
                 this.crashTimeout = setTimeout(() => {
                     this.isAnimating = false;
+                    if (callback) callback();
                 }, 1500);
             } else {
-                // Win animation - just stop at the current height
                 setTimeout(() => {
                     this.isAnimating = false;
+                    if (callback) callback();
                 }, 1000);
             }
         },
@@ -1166,39 +1164,43 @@ export default {
                         clearInterval(checkInterval);
 
                         // Stop the animation with the result
-                        this.stopRocketAnimation(response.data.win, response.data.multiplierAchieved);
+                        this.stopRocketAnimation(
+                            response.data.win,
+                            response.data.multiplierAchieved,
+                            () => {
+                                // Update the game state
+                                this.lastResult = {
+                                    played: true,
+                                    win: response.data.win,
+                                    multiplierAchieved: response.data.multiplierAchieved
+                                };
 
-                        // Update the game state
-                        this.lastResult = {
-                            played: true,
-                            win: response.data.win,
-                            multiplierAchieved: response.data.multiplierAchieved
-                        };
+                                const gameResult = {
+                                    targetMultiplier: this.targetMultiplier,
+                                    multiplierAchieved: response.data.multiplierAchieved,
+                                    betAmount: this.betAmount,
+                                    win: response.data.win
+                                };
 
-                        const gameResult = {
-                            targetMultiplier: this.targetMultiplier,
-                            multiplierAchieved: response.data.multiplierAchieved,
-                            betAmount: this.betAmount,
-                            win: response.data.win
-                        };
+                                this.gameHistory.unshift(gameResult);
+                                if (this.gameHistory.length > 10) {
+                                    this.gameHistory.pop();
+                                }
 
-                        this.gameHistory.unshift(gameResult);
-                        if (this.gameHistory.length > 10) {
-                            this.gameHistory.pop();
-                        }
+                                // Update session stats
+                                this.updateSessionStats(gameResult);
 
-                        // Update session stats
-                        this.updateSessionStats(gameResult);
+                                // Update user data
+                                this.auth.fetchUser();
+                                this.globalBalance.loadGlobalPoolData();
+                                this.isPlacingBet = false;
 
-                        // Update user data
-                        this.auth.fetchUser();
-                        this.globalBalance.loadGlobalPoolData();
-                        this.isPlacingBet = false;
-
-                        // If auto betting is active, continue with next bet
-                        if (this.isAutoBetting) {
-                            this.processAutoBetResult(gameResult);
-                        }
+                                // If auto betting is active, continue with next bet
+                                if (this.isAutoBetting) {
+                                    this.processAutoBetResult(gameResult);
+                                }
+                            }
+                        );
                     }
                 }, 50);
 
