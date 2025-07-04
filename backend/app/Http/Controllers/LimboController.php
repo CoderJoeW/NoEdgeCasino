@@ -55,7 +55,7 @@ class LimboController extends Controller
         // Update balance
         try {
             if ($win) {
-                $request->user()->increment('no_edge_cash', $payout);
+                $user->increment('no_edge_cash', $payout);
                 GlobalPool::where('currency_name', '=', 'NoEdgeCash')->decrement('currency_value', $payout);
             } else {
                 $user->decrement('no_edge_cash', $betAmount);
