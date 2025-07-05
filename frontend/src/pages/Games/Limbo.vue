@@ -29,7 +29,7 @@ import Limbo from '@/components/Games/Limbo.vue';
 import { useAuthStore } from '@/store/authStore';
 
 export default {
-    name: 'Dashboard',
+    name: 'Limbo',
     components: {
         Header,
         Sidebar,
